@@ -1,24 +1,17 @@
 import sys
 D = open(sys.argv[1]).read().strip()
-ans = 0
-constraints = {"red": 12, "green": 13, "blue": 14}
+totalPower = 0
 
-def possibleSet(set):
-    allPossibleCubes = True
-    for cubes in set.split(','):
-        colorCube = cubes.strip().split(' ')
-        if(int(colorCube[0]) > constraints[colorCube[1]]):
-            allPossibleCubes = False
-            break
-    return allPossibleCubes
+def findPower(game):
+    minCubes = {"red": 0, "blue": 0, "green": 0}
+    for set in game.split(';'):
+        for colorCubes in set.split(','):
+            colorCube = colorCubes.strip().split(' ')
+            count, color = int(colorCube[0]), colorCube[1]
+            if(minCubes[color] < count): minCubes[color] = count
+    return minCubes['red'] * minCubes['blue'] * minCubes['green']
 
 for line in D.split('\n'):
-    gameId = line[5:line.find(':')]
     game = line[line.find(':')+2:]
-    allPossibleSets = True
-    for set in game.split(';'):
-        if(possibleSet(set) != True):
-            allPossibleSets = False
-            break
-    if(allPossibleSets): ans += int(gameId)
-print(ans)
+    totalPower += findPower(game)
+print(totalPower)
