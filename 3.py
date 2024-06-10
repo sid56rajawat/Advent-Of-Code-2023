@@ -2,61 +2,55 @@ import sys
 D = open(sys.argv[1]).read().strip()
 lines = D.split('\n')
 
-def hasSymbol(i, j, matrix):
-    rows, cols = len(matrix), len(matrix[0])
-    # top
-    if(i-1 >= 0 and matrix[i-1][j] != '.' and (not matrix[i-1][j].isnumeric())):
-        return True
-    # top-right
-    if(i-1 >= 0 and j+1 < cols and matrix[i-1][j+1] != '.' and (not matrix[i-1][j+1].isnumeric())):
-        return True
-    # right
-    if(j+1 < cols and matrix[i][j+1] != '.' and (not matrix[i][j+1].isnumeric())):
-        return True
-    # down-right
-    if(i+1 < rows and j+1 < cols and matrix[i+1][j+1] != '.' and (not matrix[i+1][j+1].isnumeric())):
-        return True
-    # down
-    if(i+1 < rows and matrix[i+1][j] != '.' and (not matrix[i+1][j].isnumeric())):
-        return True
-    # down-left
-    if(i+1 < rows and j-1 >= 0 and matrix[i+1][j-1] != '.' and (not matrix[i+1][j-1].isnumeric())):
-        return True
-    # left
-    if(j-1 >= 0 and matrix[i][j-1] != '.' and (not matrix[i][j-1].isnumeric())):
-        return True
-    # top-left
-    if(i-1 >= 0 and j-1 >= 0 and matrix[i-1][j-1] != '.' and (not matrix[i-1][j-1].isnumeric())):
-        return True
-    return False
+def findGearsNearMe(i, j, gearsNearMe):
+    rows, cols = len(lines), len(lines[0])
+    
+    # Check all eight directions
+    directions = [
+        (-1, 0),  # top
+        (1, 0),   # bottom
+        (0, -1),  # left
+        (0, 1),   # right
+        (-1, -1), # top-left
+        (-1, 1),  # top-right
+        (1, -1),  # bottom-left
+        (1, 1)    # bottom-right
+    ]
+    
+    for di, dj in directions:
+        new_i, new_j = i + di, j + dj
+        if 0 <= new_i < rows and 0 <= new_j < cols and lines[new_i][new_j] == '*':
+            gearsNearMe.add(str(new_i) + 'i' + str(new_j) + 'j')
 
-ans = 0
+potentialGears = {}
 for i in range(0,len(lines)):
     line = lines[i]
-    # go from left
-    # if . continue
-    # else add to builder and check neighbors if sym -> flag = true
-    #      when . or EOL -> if flag add to total
     isBuilding = False
-    nearSymbol = False
     building = ''
+    gearsNearMe = set()
     for j in range(0,len(line)+1):
         if(isBuilding):
             if(j == len(line) or not(line[j].isnumeric())):
-                if(nearSymbol):
-                    ans += int(building)
+                # print(building,"->",gearsNearMe)
+                for gear in gearsNearMe:
+                    potentialGears.setdefault(gear, []).append(int(building))
                 building = ''
-                nearSymbol = False
                 isBuilding = False
+                gearsNearMe = set()
             elif(line[j].isnumeric()):
                 building += line[j]
-                nearSymbol = nearSymbol or hasSymbol(i,j,lines)
+                findGearsNearMe(i,j,gearsNearMe)
 
         else:
             if(j == len(line)): break
             if(line[j].isnumeric()):
                 isBuilding = True
                 building = line[j]
-                nearSymbol = hasSymbol(i,j,lines)
+                findGearsNearMe(i,j,gearsNearMe)
 
+# print(potentialGears)
+ans = 0
+for gear in potentialGears:
+    arr = potentialGears[gear]
+    if(len(arr) == 2): ans += arr[0] * arr[1]
 print(ans)
